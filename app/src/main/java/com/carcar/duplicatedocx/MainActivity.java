@@ -7,6 +7,16 @@ import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.view.Window;
 import android.widget.Toast;
+import android.content.ContentResolver;
+import android.net.Uri;
+
+import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,6 +27,7 @@ import androidx.room.Room;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.List;
 
@@ -58,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
             Uri fileUri = data.getData();
             if (fileUri != null) {
                 String fileName = getFileName(fileUri);
-                String hash = computeHashFromUri(fileUri);
+                String hash = computeTextHashFromUri(fileUri);
 
                 if (fileName != null && hash != null) {
                     filesdatabse db = Room.databaseBuilder(
@@ -103,25 +114,37 @@ public class MainActivity extends AppCompatActivity {
         return result;
     }
 
-    private String computeHashFromUri(Uri uri) {
+    private String computeTextHashFromUri(Uri uri) {
         try (InputStream inputStream = getContentResolver().openInputStream(uri)) {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                digest.update(buffer, 0, bytesRead);
-            }
-            byte[] hashBytes = digest.digest();
 
-            // Convert to hex
+            // Step 1: Read .docx file using Apache POI
+            XWPFDocument document = new XWPFDocument(inputStream);
+
+            // Step 2: Extract plain text
+            XWPFWordExtractor extractor = new XWPFWordExtractor(document);
+            String textContent = extractor.getText();
+
+            // Step 3: Generate SHA-256 hash of the plain text
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(textContent.getBytes(StandardCharsets.UTF_8));
+
+            // Step 4: Convert hash to hex string
             StringBuilder hexString = new StringBuilder();
             for (byte b : hashBytes) {
                 hexString.append(String.format("%02x", b));
             }
+
+            // Cleanup
+            extractor.close();
+            document.close();
+
             return hexString.toString();
+
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
+
 }
+

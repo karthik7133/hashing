@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.carcar.duplicatedocx"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -48,6 +48,7 @@ dependencies {
     implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.25")
     implementation ("androidx.room:room-runtime:2.6.1")
     annotationProcessor ("androidx.room:room-compiler:2.6.1")
+    implementation ("org.apache.poi:poi-ooxml:5.2.3")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
