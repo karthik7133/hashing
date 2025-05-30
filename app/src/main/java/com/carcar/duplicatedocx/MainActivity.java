@@ -7,8 +7,7 @@ import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.view.Window;
 import android.widget.Toast;
-import android.content.ContentResolver;
-import android.net.Uri;
+
 
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
