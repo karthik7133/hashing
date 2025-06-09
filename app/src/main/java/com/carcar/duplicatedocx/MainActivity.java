@@ -64,8 +64,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == PICK_DOCX_FILE && resultCode == RESULT_OK && data != null) {
-            Uri fileUri = data.getData();
+        if (requestCode == PICK_DOCX_FILE && resultCode == RESULT_OK && data != null) { // this checks we got the same data we requested and
+                                                                                        //activity is successful and data not null;
+            Uri fileUri = data.getData(); //Uniform Resource Identifier -> brings meta data of file;
             if (fileUri != null) {
                 String fileName = getFileName(fileUri);
                 String hash = computeTextHashFromUri(fileUri);
@@ -80,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
                             .build();
 
                     // Check if file with same hash exists
-                    filedata existingFile = db.getfileDAO().getFileByHashcode(hash);
+                    filedata existingFile = db.getfileDAO().getFileByHashcode(hash);//goes to data base and look for our present hash if null add();
                     if (existingFile != null) {
                         Toast.makeText(this, "Same file exists", Toast.LENGTH_SHORT).show();
                     } else {
@@ -97,8 +98,8 @@ public class MainActivity extends AppCompatActivity {
 
     private String getFileName(Uri uri) {
         String result = null;
-        if (uri.getScheme().equals("content")) {
-            Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        if (uri.getScheme().equals("content")) { // -> content://com.android.providers.downloads.documents/document/1234
+            Cursor cursor = getContentResolver().query(uri, null, null, null, null); //temporary table
             if (cursor != null && cursor.moveToFirst()) {
                 int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                 if (index >= 0) {
@@ -107,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                 cursor.close();
             }
         }
-        if (result == null) {
+        if (result == null) { // -> file:///storage/emulated/0/Documents/resume.docx
             result = uri.getLastPathSegment();
         }
         return result;
@@ -117,15 +118,21 @@ public class MainActivity extends AppCompatActivity {
         try (InputStream inputStream = getContentResolver().openInputStream(uri)) {
 
             // Step 1: Read .docx file using Apache POI
-            XWPFDocument document = new XWPFDocument(inputStream);
+            XWPFDocument document = new XWPFDocument(inputStream);//Apache POI's(Java API for Microsoft Documents) XWPF (XML Word Processor Format), which is used for handling Microsoft Word documents (.docx)
+
+            //This opens a stream to read the .docx file that you picked (using its Uri)
+
+            //getContentResolver() is used to access the content provider and open the file.
+
+            //openInputStream(uri) gives you a stream of bytes from the file.
 
             // Step 2: Extract plain text
             XWPFWordExtractor extractor = new XWPFWordExtractor(document);
             String textContent = extractor.getText();
 
             // Step 3: Generate SHA-256 hash of the plain text
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = digest.digest(textContent.getBytes(StandardCharsets.UTF_8));
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");//outputs a 256-bit (32-byte) base 10;
+            byte[] hashBytes = digest.digest(textContent.getBytes(StandardCharsets.UTF_8));//32-byte array representing the hash
 
             // Step 4: Convert hash to hex string
             StringBuilder hexString = new StringBuilder();
